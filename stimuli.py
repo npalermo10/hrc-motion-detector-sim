@@ -4,7 +4,8 @@ import scipy.signal
 import matplotlib.pyplot as plt
 from math import pi
 
-def rotate_image(image, angle):
+
+def rotate_image_fit(image, angle):
     """
     Rotates an OpenCV 2 / NumPy image about it's centre by the given angle
     (in degrees). The returned image will be large enough to hold the entire
@@ -132,16 +133,16 @@ def crop_around_center(image, width, height):
     return image[y1:y2, x1:x2]
 
 class Grating():
-    def __init__(self):
-        self.length = 1000  # lower resolution if images taking too long to load
+    def __init__(self, length):
+        self.length = length  # lower resolution if images taking too long to load
         self.clear_plaid()
-
+        
     def __repr__(self):
         return self.image
 
-    def add_sinusoid(self, frequency, amp = 1, orientation=0):
-        """frequency is in cycles/cm. Orientation is in degrees ccw"""
-        x = np.linspace(0, 2*pi*5, self.length*2)
+    def add_sinusoid(self, frequency, amp = 1, orientation=0, phase = 0):
+        """frequency is in cycles/mm. Orientation is in degrees ccw. phase shift is in degrees radians"""
+        x = np.linspace(0, 8*pi, self.length*2) - phase
         y = amp * (np.sin(x*(frequency*2)) + 1)
         img = np.array([y]*self.length*2)
         (rows, cols) = np.shape(img)
@@ -160,7 +161,7 @@ class Grating():
     def clear_plaid(self):
         self.image = np.zeros([self.length, self.length])
 
-    def show_plaid(self):
+    def show_im(self):
         plt.axis("off")
         plt.imshow(self.image, cmap='gray')
 
@@ -172,10 +173,4 @@ class Grating():
 
     def shape(self):
         return self.image.shape
-
-
-    
-p = Grating()
-p.add_sinusoid(2, 100,  0) ## 2 works for 20cm projection
-p.show_plaid()
 
