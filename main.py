@@ -6,27 +6,6 @@ from math import ceil
 import stimuli
 import cv2
 
-stim_length = 1000
-brightness = 1000
-
-stim1 = stimuli.Grating(stim_length)
-stim2 = stimuli.Grating(stim_length)
-
-stim1.add_sinusoid(frequency= 2)
-signal_a = brightness*(stim1.image + 1)
-
-stim2.add_sinusoid(frequency= 2, phase = pi/10)
-signal_b = brightness*(stim2.image + 1)
-
-# brightness = 10000
-# delay = pi/2
-# signal_a = brightness*np.sin(linspace(0, 4*pi, 1000)) + brightness
-# signal_b = brightness*np.sin(linspace(0, 4*pi, 1000)- delay) + brightness
-
-def rotate_image_about_point(image, angle, coords = (0,0)):
-    rot_mat = cv2.getRotationMatrix2D(coords, angle, 1.0)
-    result = cv2.warpAffine(image, rot_mat, image.shape[1::-1], flags=cv2.INTER_LINEAR)
-    return result    
 
 class Light_detector():
     ''' a simple light detector. takes in light at discrete levels '''
@@ -45,7 +24,9 @@ class R_detector():
         self.dist = dist
         self.get_detector_coords()
 
-        
+        self.a_detector = Light_detector(self.a_loc)
+        self.b_detector = Light_detector(self.b_loc)
+
     def delay_input(self, in_sig, b = 0.53, c = 38.9):
         t = np.array(arange(600))
         a = 1
@@ -61,13 +42,9 @@ class R_detector():
         self.b_loc = [self.dist* cos(self.ori), self.dist* sin(self.ori)]
     
     def output(self, signal_1, signal_2):
-        self.a_detector = Light_detector(self.a_loc)
-        signal_1_rot = rotate_image_about_point(signal_1, self.ori, (self.loc[0], self.loc[1]))
-        self.a_detector.get_input(signal_1_rot[0])
-        
-        self.b_detector = Light_detector(self.b_loc)
-        signal_2_rot = rotate_image_about_point(signal_2, self.ori, (self.loc[0], self.loc[1]))
-        self.b_detector.get_input(signal_2_rot[0])
+        self.a_detector.get_input(signal_1)
+
+        self.b_detector.get_input(signal_2(self.ori))
         
         self.x_a_out = self.a_detector.input
         self.str_a_out = self.delay_input(self.a_detector.input)
@@ -82,9 +59,19 @@ class R_detector():
 
 #     def add_detector()
 
+brightness = 10000
+delay = pi/2
+signal_a = brightness*np.sin(linspace(0, 4*pi, 1000)) + brightness #sf = stretch factor
+signal_b =  lambda angle: brightness*np.sin(linspace(0, 4*pi, 1000) - delay*cos(angle)) + brightness
+
 det = R_detector(ori = 0)
-det2 = R_detector(ori = 45)
-det3 = R_detector(ori = 90)
+det2 = R_detector(ori = pi/4)
+det3 = R_detector(ori = pi/2)
+
+brightness = 10000
+delay = pi/2
+signal_a = brightness*np.sin(linspace(0, 4*pi, 1000)) + brightness #sf = stretch factor
+signal_b =  lambda angle: brightness*np.sin(linspace(0, 4*pi, 1000) - delay*cos(angle)) + brightness
 
 plot(det.output(signal_a, signal_b))
 plot(det2.output(signal_a, signal_b))
